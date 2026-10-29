@@ -1,8 +1,10 @@
 ﻿using CarShowroomAPI_AI.Context;
+using CarShowroomAPI_AI.DTOs;
 using CarShowroomAPI_AI.DTOs.Cars;
 using CarShowroomAPI_AI.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CarShowroomAPI_AI.Controllers
 {
@@ -143,24 +145,65 @@ namespace CarShowroomAPI_AI.Controllers
 
 
         //Pagination
-        [HttpGet("ListCars")]
-        public IActionResult ListCars(int pageSize, int pageIndex)
+        [HttpPost("ListCars")]
+        public IActionResult ListCars([FromBody] CarFilterDto filter)
         {
             //Quarble
 
             var query = _dbContext.Cars
                 .Include(x => x.ElectricProfile)
                 .Include(x => x.FuelProfile)
-                .Include(x => x.Branch)
-                .OrderByDescending(x => x.CreatedAt);
+                .Include(x => x.Branch).AsQueryable();
+
+
+/*            query = query.Where
+                (x =>
+                    !string.IsNullOrEmpty(filter.Model) ? x.Model == filter.Model : true &&
+                    !string.IsNullOrEmpty(filter.Vin) ? x.Vin == filter.Vin : true &&
+                    filter.Price.HasValue ? x.Price == filter.Price : true &&
+                    filter.CreatedAt.HasValue ? x.CreatedAt.Date == filter.CreatedAt.Value.Date : true &&
+                );*/
+
+            if (!string.IsNullOrEmpty(filter.Model))
+            {
+                query = query.Where(x => x.Model == filter.Model);
+            }
+            if (!string.IsNullOrEmpty(filter.Vin))
+            {
+                query = query.Where(x => x.Vin == filter.Vin);
+            }
+            if (filter.Price.HasValue)
+            {
+                query = query.Where(x => x.Price == filter.Price);
+            }
+            if (filter.CreatedAt.HasValue)
+            {
+                query = query.Where(x => x.CreatedAt.Date == filter.CreatedAt.Value.Date);
+            }
+            if (filter.Type.HasValue)
+            {
+                query = query.Where(x => x.Type == filter.Type);
+            }
+            if (filter.BranchId.HasValue)
+            {
+                query = query.Where(x => x.BranchId == filter.BranchId);
+            }
 
             var count = query.Count();
 
-            var list = query.Skip(pageIndex * pageSize).Take(pageSize);
+            query = query.OrderByDescending(x => x.CreatedAt);
 
-            var result = list.Select(MapToDto).ToList();
+            var list = query.Skip(filter.PageIndex * filter.PageSize).Take(filter.PageSize);
 
-            return Ok(new { list  = result, count = count });
+            var listResult = list.Select(MapToDto).ToList();
+
+            var result = new PaginationDto<CarDto>
+            {
+                Count = count,
+                List = listResult
+            };
+
+            return Ok(result);
         }
 
         [HttpGet("GetCarDetails/{id}")]

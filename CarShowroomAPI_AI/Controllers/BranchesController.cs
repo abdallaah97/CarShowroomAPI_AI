@@ -1,4 +1,5 @@
 ﻿using CarShowroomAPI_AI.Context;
+using CarShowroomAPI_AI.DTOs;
 using CarShowroomAPI_AI.DTOs.Branch;
 using CarShowroomAPI_AI.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -60,16 +61,26 @@ namespace CarShowroomAPI_AI.Controllers
 
 
         [HttpGet("ListBranches")]
-        public IActionResult ListBranches()
+        public IActionResult ListBranches(int pagIndex = 0, int pageSize = 10)
         {
-            var barnches = _dbContext.Branches.Select(x => new BranchDto
+            var query = _dbContext.Branches.AsQueryable();
+            query = query.Skip(pagIndex * pageSize).Take(pageSize);
+            var count = query.Count();
+                
+             var list = query.Select(x => new BranchDto
             {
                 Id = x.Id,
                 Name = x.Name,
                 Address = x.Address
             }).ToList();
 
-            return Ok(barnches);
+            var result = new PaginationDto<BranchDto>
+            {
+                Count = count,
+                List = list
+            };
+
+            return Ok(result);
         }
 
     }
