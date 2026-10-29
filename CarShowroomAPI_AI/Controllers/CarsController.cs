@@ -173,6 +173,33 @@ namespace CarShowroomAPI_AI.Controllers
             return Ok(result);
         }
 
+        [HttpDelete("DeleteCar/{id}")]
+        public IActionResult DeleteCar(int id)
+        {
+            var car = GetCar(id);
+            if (car.Type == EngineType.Electric)
+            {
+                var profile = car.ElectricProfile;
+                _dbContext.ElectricCarProfiles.Remove(profile);
+            }
+            else
+            {
+                var profile = car.FuelProfile;
+                _dbContext.FuelCarProfiles.Remove(profile);
+            }
+
+            var carFeatures = car.CarFeatures;
+            if (carFeatures.Any())
+            {
+                _dbContext.RemoveRange(carFeatures);
+            }
+
+            _dbContext.Cars.Remove(car);
+
+            _dbContext.SaveChanges();
+            return Ok();
+        }
+
 
         private CarDto MapToDto(Car car)
         {

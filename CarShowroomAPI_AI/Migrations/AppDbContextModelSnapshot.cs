@@ -222,16 +222,18 @@ namespace CarShowroomAPI_AI.Migrations
                     b.HasOne("CarShowroomAPI_AI.Entities.Branch", "Branch")
                         .WithMany("Cars")
                         .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CarShowroomAPI_AI.Entities.ElectricCarProfile", "ElectricProfile")
                         .WithMany()
-                        .HasForeignKey("ElectricProfileId");
+                        .HasForeignKey("ElectricProfileId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CarShowroomAPI_AI.Entities.FuelCarProfile", "FuelProfile")
                         .WithMany()
-                        .HasForeignKey("FuelProfileId");
+                        .HasForeignKey("FuelProfileId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Branch");
 
@@ -245,13 +247,13 @@ namespace CarShowroomAPI_AI.Migrations
                     b.HasOne("CarShowroomAPI_AI.Entities.Car", "Car")
                         .WithMany("CarFeatures")
                         .HasForeignKey("CarId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CarShowroomAPI_AI.Entities.Feature", "Feature")
                         .WithMany("CarFeatures")
                         .HasForeignKey("FeatureId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Car");
@@ -264,7 +266,7 @@ namespace CarShowroomAPI_AI.Migrations
                     b.HasOne("CarShowroomAPI_AI.Entities.Car", "Car")
                         .WithMany("Reviews")
                         .HasForeignKey("CarId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Car");

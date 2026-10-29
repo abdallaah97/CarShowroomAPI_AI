@@ -20,6 +20,13 @@ namespace CarShowroomAPI_AI.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            var relationShips = modelBuilder.Model
+                .GetEntityTypes().SelectMany(e => e.GetForeignKeys());
+
+            foreach (var relationship in relationShips)
+            {
+                relationship.DeleteBehavior = DeleteBehavior.Restrict;
+            }
         }
     }
 }
