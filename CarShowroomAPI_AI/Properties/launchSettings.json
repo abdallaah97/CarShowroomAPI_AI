@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "CarShowroomAPI_AI": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:50584;http://localhost:50585"
+    }
+  }
+}
