@@ -81,6 +81,66 @@ namespace CarShowroomAPI_AI.Controllers
             return Ok(MapToDto(carResult));
         }
 
+        [HttpPut("UpdateCar/{id}")]
+        public IActionResult UpdateCar(int id, [FromBody] SaveCarDto input)
+        {
+            var car = GetCar(id);
+
+            if (car == null)
+            {
+                return NotFound("Car not exist");
+            }
+
+            car.Model = input.Model;
+            car.Vin = input.Vin;
+            car.Price = input.Price;
+            car.BranchId = input.BranchId;
+
+            _dbContext.Cars.Update(car);
+
+            if (car.Type == EngineType.Electric)
+            {
+                car.ElectricProfile.BatteryCapacityKwh = input.ElectricCarProfile.BatteryCapacityKwh;
+                car.ElectricProfile.RangeKm = input.ElectricCarProfile.RangeKm;
+                car.ElectricProfile.ChargingPort = input.ElectricCarProfile.ChargingPort;
+
+                _dbContext.ElectricCarProfiles.Update(car.ElectricProfile);
+            }
+            else if (car.Type == EngineType.Fuel)
+            {
+                car.FuelProfile.EngineCapacityCc = input.FuelCarProfile.EngineCapacityCc;
+                car.FuelProfile.FuelType = input.FuelCarProfile.FuelType;
+                car.FuelProfile.ConsumptionPer100Km = input.FuelCarProfile.ConsumptionPer100Km;
+
+                _dbContext.FuelCarProfiles.Update(car.FuelProfile);
+            }
+
+            if (input.Features != null)
+            {
+                var carFeaturesToAdd = new List<CarFeature>();
+                _dbContext.CarFeatures.RemoveRange(car.CarFeatures);
+
+                foreach (var featureId in input.Features)
+                {
+                    var carFeature = new CarFeature
+                    {
+                        CarId = car.Id,
+                        FeatureId = featureId,
+                        AssignedAt = DateTime.UtcNow
+                    };
+
+                    carFeaturesToAdd.Add(carFeature);
+                }
+
+                _dbContext.CarFeatures.AddRange(carFeaturesToAdd);
+            }
+
+            _dbContext.SaveChanges();
+            var carResult = GetCar(car.Id);
+            return Ok(MapToDto(carResult));
+
+        }
+
 
         //Pagination
         [HttpGet("ListCars")]
@@ -106,12 +166,7 @@ namespace CarShowroomAPI_AI.Controllers
         [HttpGet("GetCarDetails/{id}")]
         public IActionResult GetCarDetails(int id)
         {
-            var car = _dbContext.Cars
-                .Include(x => x.ElectricProfile)
-                .Include(x => x.FuelProfile)
-                .Include(x => x.CarFeatures).ThenInclude(x => x.Feature)
-                .Include(x => x.Branch)
-                .FirstOrDefault(x => x.Id == id);
+            var car = GetCar(id);
 
             var result = MapToDetailsDto(car);
 
@@ -174,7 +229,7 @@ namespace CarShowroomAPI_AI.Controllers
                 } : null,
                 Features = car.CarFeatures.Select(x => new CarFeaturesDto
                 {
-                    Id = x.Id,
+                    Id = x.Feature.Id,
                     Name = x.Feature.Name
                 }).ToList()
             };
@@ -184,8 +239,10 @@ namespace CarShowroomAPI_AI.Controllers
 
         private Car GetCar(int id)
         {
-            var car = _dbContext.Cars.Include(x => x.ElectricProfile)
+            var car = _dbContext.Cars
+            .Include(x => x.ElectricProfile)
             .Include(x => x.FuelProfile)
+            .Include(x => x.CarFeatures).ThenInclude(x => x.Feature)
             .Include(x => x.Branch)
             .FirstOrDefault(x => x.Id == id);
 

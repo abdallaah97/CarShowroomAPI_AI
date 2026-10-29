@@ -1,8 +1,8 @@
 ﻿using CarShowroomAPI_AI.Context;
 using CarShowroomAPI_AI.DTOs.Branch;
 using CarShowroomAPI_AI.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarShowroomAPI_AI.Controllers
 {
@@ -17,7 +17,7 @@ namespace CarShowroomAPI_AI.Controllers
         }
 
         [HttpPost("CreateBranch")]
-        public IActionResult CreateBranch([FromBody]SaveBranchDto input)
+        public IActionResult CreateBranch([FromBody] SaveBranchDto input)
         {
             var branch = new Branch
             {
@@ -37,6 +37,27 @@ namespace CarShowroomAPI_AI.Controllers
 
             return Ok(result);
         }
+
+        [HttpDelete("DeleteBranch/{id}")]
+        public IActionResult DeleteBranch(int id)
+        {
+            var branch = _dbContext.Branches.FirstOrDefault(x => x.Id == id);
+            if (branch == null)
+            {
+                return NotFound("Branch not exist");
+            }
+            var isThereCars = _dbContext.Cars.Any(x => x.BranchId == id);
+            if (isThereCars)
+            {
+                return BadRequest("You cannt delete branch");
+            }
+
+            _dbContext.Branches.Remove(branch);
+            _dbContext.SaveChanges();
+
+            return Ok();
+        }
+
 
         [HttpGet("ListBranches")]
         public IActionResult ListBranches()
