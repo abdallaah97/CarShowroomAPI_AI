@@ -1,9 +1,6 @@
-﻿using CarShowroomAPI_AI.Context;
-using CarShowroomAPI_AI.DTOs;
-using CarShowroomAPI_AI.DTOs.Branch;
-using CarShowroomAPI_AI.Entities;
+﻿using Application.Services.BranchesService;
+using Application.Services.BranchesService.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CarShowroomAPI_AI.Controllers
 {
@@ -11,50 +8,37 @@ namespace CarShowroomAPI_AI.Controllers
     [ApiController]
     public class BranchesController : ControllerBase
     {
-        private readonly AppDbContext _dbContext;
-        public BranchesController(AppDbContext dbContext)
+        private readonly IBranchesService _branchesService;
+        public BranchesController(IBranchesService branchesService)
         {
-            _dbContext = dbContext;
+            _branchesService = branchesService;
         }
 
         [HttpPost("CreateBranch")]
-        public IActionResult CreateBranch([FromBody] SaveBranchDto input)
+        public async Task<IActionResult> CreateBranch([FromBody] SaveBranchDto input)
         {
-            var branch = new Branch
+            try
             {
-                Name = input.Name,
-                Address = input.Address
-            };
-
-            _dbContext.Branches.Add(branch);
-            _dbContext.SaveChanges();
-
-            var result = new BranchDto
+                var result = await _branchesService.CreateBranch(input);
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
-                Id = branch.Id,
-                Name = input.Name,
-                Address = input.Address
-            };
-
-            return Ok(result);
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("DeleteBranch/{id}")]
-        public IActionResult DeleteBranch(int id)
+        public async Task<IActionResult> DeleteBranch(int id)
         {
-            var branch = _dbContext.Branches.FirstOrDefault(x => x.Id == id);
-            if (branch == null)
+            try
             {
-                return NotFound("Branch not exist");
+                await _branchesService.DeleteBranch(id);
             }
-            var isThereCars = _dbContext.Cars.Any(x => x.BranchId == id);
-            if (isThereCars)
+            catch (Exception ex)
             {
-                return BadRequest("You cannt delete branch");
+                return BadRequest(ex.Message);
             }
-
-            _dbContext.Branches.Remove(branch);
-            _dbContext.SaveChanges();
 
             return Ok();
         }
@@ -63,24 +47,15 @@ namespace CarShowroomAPI_AI.Controllers
         [HttpGet("ListBranches")]
         public IActionResult ListBranches(int pagIndex = 0, int pageSize = 10)
         {
-            var query = _dbContext.Branches.AsQueryable();
-            query = query.Skip(pagIndex * pageSize).Take(pageSize);
-            var count = query.Count();
-                
-             var list = query.Select(x => new BranchDto
+            try
             {
-                Id = x.Id,
-                Name = x.Name,
-                Address = x.Address
-            }).ToList();
-
-            var result = new PaginationDto<BranchDto>
+                var result = _branchesService.ListBranches(pagIndex, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
-                Count = count,
-                List = list
-            };
-
-            return Ok(result);
+                return BadRequest(ex.Message);
+            }
         }
 
     }

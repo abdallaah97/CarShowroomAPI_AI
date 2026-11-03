@@ -1,6 +1,5 @@
-﻿using CarShowroomAPI_AI.Context;
-using CarShowroomAPI_AI.DTOs.Features;
-using CarShowroomAPI_AI.Entities;
+﻿using Application.Services.Features;
+using Application.Services.FeaturesService.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarShowroomAPI_AI.Controllers
@@ -9,42 +8,38 @@ namespace CarShowroomAPI_AI.Controllers
     [ApiController]
     public class FeaturesController : ControllerBase
     {
-        private readonly AppDbContext _dbContext;
-        public FeaturesController(AppDbContext dbContext)
+        private readonly IFeaturesService _featuresService;
+        public FeaturesController(IFeaturesService featuresService)
         {
-            _dbContext = dbContext;
+            _featuresService = featuresService;
         }
 
         [HttpPost("CreateFeature")]
-        public IActionResult CreateFeature([FromBody] SaveFeatureDto input)
+        public async Task<IActionResult> CreateFeature([FromBody] SaveFeatureDto input)
         {
-            var Feature = new Feature
+            try
             {
-                Name = input.Name,
-            };
-
-            _dbContext.Features.Add(Feature);
-            _dbContext.SaveChanges();
-
-            var result = new FeatureDto
+                var result = await _featuresService.CreateFeature(input);
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
-                Id = Feature.Id,
-                Name = input.Name,
-            };
-
-            return Ok(result);
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("ListFeaturees")]
-        public IActionResult ListFeaturees()
+        public async Task<IActionResult> ListFeaturees()
         {
-            var barnches = _dbContext.Features.Select(x => new FeatureDto
+            try
             {
-                Id = x.Id,
-                Name = x.Name,
-            }).ToList();
-
-            return Ok(barnches);
+                var result = await _featuresService.ListFeatures();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
     }

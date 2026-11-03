@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="Application/Application.csproj" Id="d9d5fea6-72ef-4b07-855e-5757b310e3b6" />
   <Project Path="CarShowroomAPI_AI/CarShowroomAPI_AI.csproj" />
+  <Project Path="Domian/Domian.csproj" Id="e1a2d98b-4cca-4fe5-93ee-f68baa227b56" />
+  <Project Path="Infratructure/Infratructure.csproj" Id="cfd13c2f-ee99-43d0-beb4-bcb4a3f993f9" />
 </Solution>
