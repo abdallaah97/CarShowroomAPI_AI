@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace CarShowroomAPI_AI.Domian.Entities
 {
     public class CarReview
@@ -11,8 +9,6 @@ namespace CarShowroomAPI_AI.Domian.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public int CarId { get; set; }
-
-        [ForeignKey("CarId")]
         public Car Car { get; set; } = null!;
     }
 }

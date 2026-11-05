@@ -20,6 +20,9 @@ namespace CarShowroomAPI_AI.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
             var relationShips = modelBuilder.Model
                 .GetEntityTypes().SelectMany(e => e.GetForeignKeys());
 

@@ -2,7 +2,6 @@
 using CarShowroomAPI_AI.Domian.Entities;
 using CarShowroomAPI_AI.DTOs;
 using CarShowroomAPI_AI.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace Application.Services.BranchesService
@@ -42,7 +41,7 @@ namespace Application.Services.BranchesService
             {
                 throw new Exception("Branch not exist");
             }
-            var isThereCars = await _carRepository.GetAll().AnyAsync(x => x.BranchId == id);
+            var isThereCars = await _carRepository.Any(x => x.BranchId == id);
             if (isThereCars)
             {
                 throw new Exception("You cannt delete branch");
@@ -53,9 +52,8 @@ namespace Application.Services.BranchesService
 
         public async Task<PaginationDto<BranchDto>> ListBranches(int pagIndex = 0, int pageSize = 10)
         {
-            var query = _branchRepsitory.GetAll();
-            var totalCount = await query.CountAsync();
-            var branches = await query.Skip(pagIndex * pageSize).Take(pageSize).ToListAsync();
+            var totalCount = await _branchRepsitory.Count();
+            var branches = await _branchRepsitory.GetPaged(pagIndex, pageSize);
             var result = new PaginationDto<BranchDto>
             {
                 Count = totalCount,

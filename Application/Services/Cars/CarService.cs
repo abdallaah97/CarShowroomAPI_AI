@@ -2,17 +2,16 @@
 using CarShowroomAPI_AI.Domian.Entities;
 using CarShowroomAPI_AI.DTOs;
 using CarShowroomAPI_AI.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace CarShowroomAPI_AI.Services.Cars
 {
     public class CarService : ICarService
     {
-        private readonly IGenericRepository<Car> _carRepository;
+        private readonly ICarRepository _carRepository;
         private readonly IGenericRepository<ElectricCarProfile> _electricCarProfileRepository;
         private readonly IGenericRepository<FuelCarProfile> _fuelCarProfileRepository;
         private readonly IGenericRepository<CarFeature> _carFeatureRepository;
-        public CarService(IGenericRepository<Car> carRepository, IGenericRepository<ElectricCarProfile> electricCarProfileRepository, IGenericRepository<FuelCarProfile> fuelCarProfileRepository, IGenericRepository<CarFeature> carFeatureRepository)
+        public CarService(ICarRepository carRepository, IGenericRepository<ElectricCarProfile> electricCarProfileRepository, IGenericRepository<FuelCarProfile> fuelCarProfileRepository, IGenericRepository<CarFeature> carFeatureRepository)
         {
             _carRepository = carRepository;
             _electricCarProfileRepository = electricCarProfileRepository;
@@ -144,59 +143,12 @@ namespace CarShowroomAPI_AI.Services.Cars
 
         public async Task<PaginationDto<CarDto>> ListCars(CarFilterDto filter)
         {
-            //Quarble
-
-            var query = _carRepository.GetAll()
-                .Include(x => x.ElectricProfile)
-                .Include(x => x.FuelProfile)
-                .Include(x => x.Branch).AsQueryable();
-
-
-            /*            query = query.Where
-                            (x =>
-                                !string.IsNullOrEmpty(filter.Model) ? x.Model == filter.Model : true &&
-                                !string.IsNullOrEmpty(filter.Vin) ? x.Vin == filter.Vin : true &&
-                                filter.Price.HasValue ? x.Price == filter.Price : true &&
-                                filter.CreatedAt.HasValue ? x.CreatedAt.Date == filter.CreatedAt.Value.Date : true &&
-                            );*/
-
-            if (!string.IsNullOrEmpty(filter.Model))
-            {
-                query = query.Where(x => x.Model.ToLower().Contains(filter.Model.ToLower().Trim()));
-            }
-            if (!string.IsNullOrEmpty(filter.Vin))
-            {
-                query = query.Where(x => x.Vin.ToLower() == filter.Vin.ToLower());
-            }
-            if (filter.Price.HasValue)
-            {
-                query = query.Where(x => x.Price == filter.Price);
-            }
-            if (filter.CreatedAt.HasValue)
-            {
-                query = query.Where(x => x.CreatedAt.Date == filter.CreatedAt.Value.Date);
-            }
-            if (filter.Type.HasValue)
-            {
-                query = query.Where(x => x.Type == filter.Type);
-            }
-            if (filter.BranchId.HasValue)
-            {
-                query = query.Where(x => x.BranchId == filter.BranchId);
-            }
-
-            var count = await query.CountAsync();
-
-            query = query.OrderByDescending(x => x.CreatedAt);
-
-            var list = query.Skip(filter.PageIndex * filter.PageSize).Take(filter.PageSize);
-
-            var listResult = list.Select(MapToDto).ToList();
+            var cars = await _carRepository.ListCars(filter);
 
             var result = new PaginationDto<CarDto>
             {
-                Count = count,
-                List = listResult
+                Count = cars.Count,
+                List = cars.List.Select(MapToDto).ToList()
             };
 
             return result;
@@ -231,13 +183,7 @@ namespace CarShowroomAPI_AI.Services.Cars
 
         private async Task<Car> GetCar(int id)
         {
-            var car = await _carRepository.GetAll()
-            .Include(x => x.ElectricProfile)
-            .Include(x => x.FuelProfile)
-            .Include(x => x.CarFeatures).ThenInclude(x => x.Feature)
-            .Include(x => x.Branch)
-            .FirstOrDefaultAsync(x => x.Id == id);
-
+            var car = await _carRepository.GetCarDetails(id);
 
             return car;
         }

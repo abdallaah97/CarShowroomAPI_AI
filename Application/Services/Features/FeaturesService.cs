@@ -1,7 +1,6 @@
 ﻿using Application.Services.FeaturesService.DTOs;
 using CarShowroomAPI_AI.Domian.Entities;
 using CarShowroomAPI_AI.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace Application.Services.Features
@@ -16,12 +15,13 @@ namespace Application.Services.Features
 
         public async Task<List<FeatureDto>> ListFeatures()
         {
-            var features = await _featureRepository.GetAll().Select(x => new FeatureDto
+            var features = await _featureRepository.GetAll();
+            var result = features.Select(x => new FeatureDto
             {
                 Id = x.Id,
                 Name = x.Name,
-            }).ToListAsync();
-            return features;
+            }).ToList();
+            return result;
         }
 
         public async Task<FeatureDto> CreateFeature(SaveFeatureDto input)

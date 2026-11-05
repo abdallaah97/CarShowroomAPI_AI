@@ -1,4 +1,4 @@
-using Application.Services.BranchesService;
+﻿using Application.Services.BranchesService;
 using Application.Services.Features;
 using CarShowroomAPI_AI.Context;
 using CarShowroomAPI_AI.Repositories;
@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 //builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<ICarRepository, CarRepository>();
 builder.Services.AddScoped<ICarService, CarService>();
 builder.Services.AddScoped<IFeaturesService, FeaturesService>();
 builder.Services.AddScoped<IBranchesService, BranchesService>();

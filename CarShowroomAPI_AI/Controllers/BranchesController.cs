@@ -45,11 +45,11 @@ namespace CarShowroomAPI_AI.Controllers
 
 
         [HttpGet("ListBranches")]
-        public IActionResult ListBranches(int pagIndex = 0, int pageSize = 10)
+        public async Task<IActionResult> ListBranches(int pagIndex = 0, int pageSize = 10)
         {
             try
             {
-                var result = _branchesService.ListBranches(pagIndex, pageSize);
+                var result = await _branchesService.ListBranches(pagIndex, pageSize);
                 return Ok(result);
             }
             catch (Exception ex)

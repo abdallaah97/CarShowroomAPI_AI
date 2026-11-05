@@ -1,12 +1,13 @@
 using CarShowroomAPI_AI.Context;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace CarShowroomAPI_AI.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly AppDbContext _dbContext;
-        private readonly DbSet<T> _dbSet;
+        protected readonly AppDbContext _dbContext;
+        protected readonly DbSet<T> _dbSet;
 
         public GenericRepository(AppDbContext dbContext)
         {
@@ -14,14 +15,29 @@ namespace CarShowroomAPI_AI.Repositories
             _dbSet = _dbContext.Set<T>();
         }
 
-        public IQueryable<T> GetAll()
+        public async Task<List<T>> GetAll()
         {
-            return _dbSet.AsQueryable();
+            return await _dbSet.ToListAsync();
+        }
+
+        public async Task<List<T>> GetPaged(int pageIndex, int pageSize)
+        {
+            return await _dbSet.Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
         }
 
         public async Task<T> GetById(int id)
         {
             return await _dbSet.FindAsync(id);
+        }
+
+        public async Task<int> Count()
+        {
+            return await _dbSet.CountAsync();
+        }
+
+        public async Task<bool> Any(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.AnyAsync(predicate);
         }
 
         public async Task Insert(T entity)
